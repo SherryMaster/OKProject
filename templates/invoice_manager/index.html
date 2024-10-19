@@ -5,6 +5,32 @@
 {% block content %}
   {% if user.is_authenticated %}
     <h1>Welcome {{ user.username }}!</h1>
+    <div class="row">
+      <div class="col">
+        <h2>Recent Invoices</h2>
+        <ul>
+          {% for invoice in invoices %}
+            <li>
+              <a class="index-invoice" href="">
+                {{ invoice.created_by }} created an invoice for {{ invoice.customer.name }} of RS {{ invoice.amount }}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="col">
+        <h2>New Customers</h2>
+        <ul>
+          {% for customer in customers %}
+            <li>
+              <a class="index-invoice" href="">
+                {{ customer.name }}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
   {% else %}
     <h1>Welcome to OkPrints Manager!</h1>
   {% endif %}

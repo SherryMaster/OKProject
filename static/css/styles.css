@@ -1,0 +1,70 @@
+/* styles.css */
+
+body {
+  background-color: #ffffff; /* white background */
+}
+
+.navbar {
+  background-image: linear-gradient(to bottom right, #ff0011, #ffffff); /* red to white gradient */
+}
+
+.navbar-brand {
+  color: #ffffff; /* white text */
+}
+
+.navbar-nav a {
+  color: #ffffff; /* white text */
+}
+
+.navbar-nav a:hover {
+  color: #ff0011; /* red text on hover */
+}
+
+.index-invoice {
+  background: linear-gradient(to bottom right, #ff69b4, #ffe6ef); /* pinkish gradient */
+  border-radius: 1rem;
+  padding: 1rem;
+  display: inline-block;
+  text-decoration: none;
+  color: #333; /* dark gray text */
+  font-weight: bold;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+}
+
+.index-invoice:hover {
+  background: linear-gradient(to bottom right, #ff99cc, #ffe6ef); /* pinkish gradient on hover */
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+button[type="submit"] {
+  background-color: #ff0011; /* red background */
+  color: #ffffff; /* white text */
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button[type="submit"]:hover {
+  background-color: #ff0033; /* darker red background on hover */
+}
+
+.form-container {
+  background-color: #ffffff; /* white background */
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-control {
+  background-color: #ffffff; /* white background */
+  border: 1px solid #ff0011; /* red border */
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.form-control:focus {
+  border-color: #ff0033; /* darker red border on focus */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}

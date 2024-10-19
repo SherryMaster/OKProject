@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'invoice_manager.apps.InvoiceManagerConfig',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
