@@ -38,10 +38,11 @@
         </thead>
         <tbody>
           {% for item in items %}
-            <tr>
+            <tr data-item-id="{{ item.pk }}">
               <td>{{ item.name }}</td>
               <td>{{ item.rate }}</td>
               <td>
+                <button class="btn btn-primary" data-toggle="modal" data-target="#update-modal-{{ item.pk }}">Update</button>
                 <button class="btn btn-danger" data-toggle="modal" data-target="#delete-modal-{{ item.pk }}">Delete</button>
               </td>
             </tr>
@@ -75,6 +76,34 @@
         </div>
       </div>
     </div>
+
+    <div id="update-modal-{{ item.pk }}" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Update {{ item.name }}</h5>
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+          </div>
+          <div class="modal-body">
+            <form id="update-item-form-{{ item.pk }}">
+              <div class="form-group">
+                <label for="update-name-{{ item.pk }}">Item Name:</label>
+                <input type="text" class="form-control" id="update-name-{{ item.pk }}" name="name" required value="{{ item.name }}">
+              </div>
+              <div class="form-group">
+                <label for="update-rate-{{ item.pk }}">Rate:</label>
+                <input type="number" class="form-control" id="update-rate-{{ item.pk }}" name="rate" required value="{{ item.rate }}">
+              </div>
+              <button type="submit" class="btn btn-primary">Update</button>
+              <div id="loader-{{ item.pk }}" style="display: none;">
+                <i class="fas fa-spinner fa-spin"></i>
+              </div>
+              <div id="error-message-{{ item.pk }}" style="display: none;"></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
   {% endfor %}
 
   <!-- JavaScript code -->
@@ -91,10 +120,14 @@
           $(errorMessageId).hide();
 
           $.ajax({
-            type: 'DELETE',
+            type: 'POST',
             url: '{% url 'invoice_manager:item_delete' item.pk %}',
+              headers: {
+                  'X-CSRFToken': '{{ csrf_token }}'
+                },
             success: function(response) {
               if (response.success) {
+                  console.log(response.success);
                 $(modalId).modal('hide');
                 // Update table to reflect deleted item
                 $('tr[data-item-id="' + itemId + '"]').remove();
@@ -109,8 +142,48 @@
             }
           });
         });
+
+        $('#update-item-form-{{ item.pk }}').on('submit', function(e) {
+          e.preventDefault();
+          var itemId = {{ item.pk }};
+          var modalId = '#update-modal-' + itemId;
+          var loaderId = '#loader-' + itemId;
+          var errorMessageId = '#error-message-' + itemId;
+
+          $(loaderId).show();
+          $(errorMessageId).hide();
+
+          $.ajax({
+            type: 'POST',
+            url: '{% url 'invoice_manager:item_update' item.pk %}',
+              headers: {
+                  'X-CSRFToken': '{{ csrf_token }}'
+                },
+            data: $(this).serialize(),
+            success: function(response) {
+              if (response.success) {
+                  console.log(response.success);
+                $(modalId).modal('hide');
+                // Update table to reflect updated item
+                $('tr[data-item-id="' + itemId + '"]').find('td:nth-child(1)').text(response.item.name);
+                $('tr[data-item-id="' + itemId + '"]').find('td:nth-child(2)').text(response.item.rate);
+                $(errorMessageId).html('').hide();
+              } else {
+                $(loaderId).hide();
+                $(errorMessageId).html(response.error).show();
+              }
+            },
+            error: function(xhr, status, error) {
+              $(loaderId).hide();
+              $(errorMessageId).html('Error: ' + error).show();
+            }
+          });
+        });
       {% endfor %}
     });
+
+
+
     const form = document.querySelector('#item-form');
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -148,6 +221,7 @@
           form.reset();
           errorMessageDiv.textContent = '';
           form.classList.remove('error');
+          window.location.href = window.location.href;
         } else if (response.status === 409) { // Conflict (Integrity Error)
           const errorText = await response.text();
           errorMessageDiv.textContent = `Error: ${errorText}`;
