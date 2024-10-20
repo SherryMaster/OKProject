@@ -37,19 +37,6 @@ body {
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
 }
 
-button[type="submit"] {
-  background-color: #ff0011; /* red background */
-  color: #ffffff; /* white text */
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-button[type="submit"]:hover {
-  background-color: #ff0033; /* darker red background on hover */
-}
-
 .form-container {
   background-color: #ffffff; /* white background */
   padding: 20px;
@@ -68,3 +55,23 @@ button[type="submit"]:hover {
   border-color: #ff0033; /* darker red border on focus */
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
+
+.red-button {
+  background-color: #ff0011; /* red background */
+  color: #ffffff; /* white text */
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.red-button:hover {
+  background-color: #7f0000; /* darker red background on hover */
+  color: #ffffff; /* white text */
+}
+
+.red-button:focus{
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.5);
+}
+

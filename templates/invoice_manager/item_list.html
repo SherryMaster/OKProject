@@ -3,30 +3,8 @@
 
 {% block content %}
   <div class="container">
-    <div class="row justify-content-center">
-  <!-- Form to add new item -->
-  <div class="container">
-    <div class="row justify-content-center">
-      <h2 class="text-center">Add New Item</h2>
-    </div>
-    <div class="row justify-content-center">
-      <form id="item-form" method="post" action="{% url 'invoice_manager:items' %}">
-        {% csrf_token %}
-        <div class="form-group">
-          <label for="name">Item Name:</label>
-          <input type="text" class="form-control" id="name" name="name" required>
-        </div>
-        <div class="form-group">
-          <label for="rate">Rate:</label>
-          <input type="number" class="form-control" id="rate" name="rate" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Add Item</button>
-      </form>
-    </div>
-      <div id="error-message" class="text-danger"></div>
-  </div>
       <h1 class="text-center">Items</h1>
-    </div>
+      <button type="button" class="btn red-button mt-3 mb-3" data-toggle="modal" data-target="#create-modal">Create New Item</button>
     <div class="row justify-content-center">
       <table class="table table-striped">
         <thead>
@@ -42,8 +20,8 @@
               <td>{{ item.name }}</td>
               <td>{{ item.rate }}</td>
               <td>
-                <button class="btn btn-primary" data-toggle="modal" data-target="#update-modal-{{ item.pk }}">Update</button>
-                <button class="btn btn-danger" data-toggle="modal" data-target="#delete-modal-{{ item.pk }}">Delete</button>
+                <button class="btn btn-primary" data-toggle="modal" data-target="#update-modal-{{ item.pk }}"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-danger" data-toggle="modal" data-target="#delete-modal-{{ item.pk }}"><i class="fas fa-trash"></i></button>
               </td>
             </tr>
           {% endfor %}
@@ -54,6 +32,7 @@
 
 
   <!-- Modal template -->
+    <div id="modal-container">
   {% for item in items %}
     <div id="delete-modal-{{ item.pk }}" class="modal fade">
       <div class="modal-dialog">
@@ -67,8 +46,8 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-danger" id="confirm-delete-{{ item.pk }}">Delete</button>
-            <div id="loader-{{ item.pk }}" style="display: none;">
+            <button type="button" class="btn btn-danger modal-delete-button" id="confirm-delete-{{ item.pk }}" data-item-id="{{ item.pk }}">Delete</button>
+            <div id="loader-delete-{{ item.pk }}" style="display: none;">
               <i class="fas fa-spinner fa-spin"></i>
             </div>
             <div id="error-message-{{ item.pk }}" style="display: none;"></div>
@@ -94,8 +73,8 @@
                 <label for="update-rate-{{ item.pk }}">Rate:</label>
                 <input type="number" class="form-control" id="update-rate-{{ item.pk }}" name="rate" required value="{{ item.rate }}">
               </div>
-              <button type="submit" class="btn btn-primary">Update</button>
-              <div id="loader-{{ item.pk }}" style="display: none;">
+              <button type="submit" class="btn btn-primary modal-update-button" data-item-id="{{ item.pk }}">Update</button>
+              <div id="loader-update-{{ item.pk }}" style="display: none;">
                 <i class="fas fa-spinner fa-spin"></i>
               </div>
               <div id="error-message-{{ item.pk }}" style="display: none;"></div>
@@ -106,22 +85,66 @@
     </div>
   {% endfor %}
 
+    <div id="create-modal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Create New Item</h5>
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+          </div>
+          <div class="modal-body">
+            <form id="create-item-form">
+              <div class="form-group">
+                <label for="name">Item Name:</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+              </div>
+              <div class="form-group">
+                <label for="rate">Rate:</label>
+                <input type="number" class="form-control" id="rate" name="rate" required>
+              </div>
+              <button type="submit" class="btn red-button">Create</button>
+              <div id="loader" style="display: none;">
+                <i class="fas fa-spinner fa-spin"></i>
+              </div>
+              <div id="error-message" style="display: none;"></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
   <!-- JavaScript code -->
   <script>
-    $(document).ready(function() {
-      {% for item in items %}
-        $('#confirm-delete-{{ item.pk }}').on('click', function() {
-          var itemId = {{ item.pk }};
+        $('tbody tr').on('click', '.btn-danger', function() {
+          var itemId = $(this).closest('tr').data('item-id');
           var modalId = '#delete-modal-' + itemId;
-          var loaderId = '#loader-' + itemId;
-          var errorMessageId = '#error-message-' + itemId;
+         console.log(`items/${itemId}/delete`)
+          $(modalId).modal('show');
+        });
 
+        $('tbody tr').on('click', '.btn-primary', function() {
+          var itemId = $(this).closest('tr').data('item-id');
+          var modalId = '#update-modal-' + itemId;
+         console.log(`items/${itemId}/update/`)
+          $(modalId).modal('show');
+        }
+
+      );
+
+        $('button.modal-delete-button').on('click', function() {
+
+          var itemId = $(this).data('item-id');
+          var modalId = '#delete-modal-' + itemId;
+          var loaderId = '#loader-delete-' + itemId;
+          var errorMessageId = '#error-message-' + itemId;
+          console.log(`items/${itemId}/delete`)
           $(loaderId).show();
           $(errorMessageId).hide();
-
           $.ajax({
             type: 'POST',
-            url: '{% url 'invoice_manager:item_delete' item.pk %}',
+            url: `/items/${itemId}/delete`,
               headers: {
                   'X-CSRFToken': '{{ csrf_token }}'
                 },
@@ -143,27 +166,35 @@
           });
         });
 
-        $('#update-item-form-{{ item.pk }}').on('submit', function(e) {
-          e.preventDefault();
-          var itemId = {{ item.pk }};
+        $('button.modal-update-button').on('click', function() {
+          event.preventDefault();
+          var form = $(this).closest('form');
+          var name = form.find('input[name="name"]').val();
+          var rate = form.find('input[name="rate"]').val();
+          var itemId = $(this).data('item-id');
           var modalId = '#update-modal-' + itemId;
-          var loaderId = '#loader-' + itemId;
+          var loaderId = '#loader-update-' + itemId;
           var errorMessageId = '#error-message-' + itemId;
+
+          console.log(`items/${itemId}/update/`)
 
           $(loaderId).show();
           $(errorMessageId).hide();
-
           $.ajax({
             type: 'POST',
-            url: '{% url 'invoice_manager:item_update' item.pk %}',
+            url: `items/${itemId}/update`,
               headers: {
                   'X-CSRFToken': '{{ csrf_token }}'
                 },
-            data: $(this).serialize(),
+            data: {
+              name: name,
+              rate: rate
+            },
             success: function(response) {
               if (response.success) {
                   console.log(response.success);
                 $(modalId).modal('hide');
+                $(loaderId).hide();
                 // Update table to reflect updated item
                 $('tr[data-item-id="' + itemId + '"]').find('td:nth-child(1)').text(response.item.name);
                 $('tr[data-item-id="' + itemId + '"]').find('td:nth-child(2)').text(response.item.rate);
@@ -179,60 +210,118 @@
             }
           });
         });
-      {% endfor %}
-    });
 
 
+      $('#create-item-form').on('submit', function(e) {
+        e.preventDefault();
+        var modalId = '#create-modal';
+        var loaderId = '#loader';
+        var errorMessageId = '#error-message';
 
-    const form = document.querySelector('#item-form');
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const formData = new FormData(form);
-      const name = formData.get('name');
-      const rate = formData.get('rate');
-      const tableBody = document.querySelector('tbody');
-      const existingRows = tableBody.rows;
-      const errorMessageDiv = document.querySelector('#error-message');
+        $(loaderId).show();
+        $(errorMessageId).hide();
 
-      // Check for duplicate items
-      for (let i = 0; i < existingRows.length; i++) {
-        const rowName = existingRows[i].cells[0].textContent;
-        const rowRate = existingRows[i].cells[1].textContent;
-        if (rowName === name) {
-          errorMessageDiv.textContent = `Error: Item with name "${name}" already exists.`;
-          form.classList.add('error');
-          return;
-        }
-      }
+        $.ajax({
+          type: 'POST',
+          url: '{% url 'invoice_manager:item_create' %}',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+              },
+          data: $(this).serialize(),
+          success: function(response) {
+            if (response.success) {
+                console.log(response.success);
+              $(modalId).modal('hide');
+              $(loaderId).hide();
+              // Add new item to table
+              var tableBody = document.querySelector('tbody');
+              var newRow = document.createElement('tr');
+              newRow.setAttribute('data-item-id', response.item.pk);
+              newRow.innerHTML = `
+                <td>${response.item.name}</td>
+                <td>${response.item.rate}</td>
+                <td>
+                  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#update-modal-${response.item.pk}">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-modal-${response.item.pk}">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </td>
+              `;
 
-      try {
-        const response = await fetch(form.action, {
-          method: form.method,
-          body: formData,
+              const modals = document.querySelector("#modal-container");
+
+              const newUpdateModal = document.createElement("div");
+              newUpdateModal.setAttribute("id", `update-modal-${response.item.pk}`);
+              newUpdateModal.setAttribute("class", "modal fade");
+              newUpdateModal.innerHTML = `
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Update ${response.item.name}</h5>
+                      <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                      <form id="update-item-form-${response.item.pk}">
+                        <div class="form-group">
+                          <label for="update-name-${response.item.pk}">Item Name:</label>
+                          <input type="text" class="form-control" id="update-name-${response.item.pk}" name="name" required value="${response.item.name}">
+                        </div>
+                        <div class="form-group">
+                          <label for="update-rate-${response.item.pk}">Rate:</label>
+                          <input type="number" class="form-control" id="update-rate-${response.item.pk}" name="rate" required value="${response.item.rate}">
+                        </div>
+                        <button type="submit" class="btn btn-primary modal-update-button" data-item-id="${response.item.pk}"><i class="fas fa-save"></i></button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              `;
+
+              const newDeleteModal = document.createElement("div");
+              newDeleteModal.setAttribute("id", `delete-modal-${response.item.pk}`);
+              newDeleteModal.setAttribute("class", "modal fade");
+              newDeleteModal.innerHTML = `
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Delete ${response.item.name}</h5>
+                      <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                      <p>Are you sure you want to delete ${response.item.name} from the list?}</p>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                      <form id="delete-item-form-${response.item.pk}" method="POST" action="items/${response.item.pk}/delete">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger modal-delete-button" data-item-id="${response.item.pk}">Delete</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              `;
+
+              modals.appendChild(newUpdateModal);
+              modals.appendChild(newDeleteModal);
+
+              tableBody.appendChild(newRow);
+              $(errorMessageId).html('').hide();
+            } else {
+              $(loaderId).hide();
+              if (response.reason) {
+                $(errorMessageId).html(response.reason).show();
+              } else {
+                $(errorMessageId).html(response.error).show();
+              }
+            }
+          },
+          error: function(xhr, status, error) {
+            $(loaderId).hide();
+            $(errorMessageId).html('Error: ' + error).show();
+          }
         });
-        if (response.ok) {
-          const newRow = document.createElement('tr');
-          newRow.innerHTML = `
-            <td>${name}</td>
-            <td>${rate}</td>
-            <td></td>
-          `;
-          tableBody.appendChild(newRow);
-          form.reset();
-          errorMessageDiv.textContent = '';
-          form.classList.remove('error');
-          window.location.href = window.location.href;
-        } else if (response.status === 409) { // Conflict (Integrity Error)
-          const errorText = await response.text();
-          errorMessageDiv.textContent = `Error: ${errorText}`;
-          form.classList.add('error');
-        } else {
-          errorMessageDiv.textContent = `Error: ${response.status} ${response.statusText}`;
-          form.classList.add('error');
-        }
-      } catch (error) {
-        console.error('Error submitting form:', error);
-      }
-    });
+      });
   </script>
 {% endblock %}
