@@ -23,9 +23,13 @@ def item_create(request):
 def item_delete(request, pk):
     print(pk)
     if request.method == "POST":
-        item = Item.objects.get(pk=pk)
-        item.delete()
-        return JsonResponse({"success": True})
+        try:
+            item = Item.objects.get(pk=pk)
+            item.delete()
+            return JsonResponse({"success": True})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False})
 
     return JsonResponse({"success": False})
 

@@ -133,15 +133,14 @@
 
       );
 
-        $('button.modal-delete-button').on('click', function() {
-
+        $('body').on('click', '.modal-delete-button', function() {
           var itemId = $(this).data('item-id');
           var modalId = '#delete-modal-' + itemId;
           var loaderId = '#loader-delete-' + itemId;
           var errorMessageId = '#error-message-' + itemId;
-          console.log(`items/${itemId}/delete`)
           $(loaderId).show();
           $(errorMessageId).hide();
+
           $.ajax({
             type: 'POST',
             url: `/items/${itemId}/delete`,
@@ -166,7 +165,7 @@
           });
         });
 
-        $('button.modal-update-button').on('click', function() {
+        $('body').on('click', '.modal-update-button', function() {
           event.preventDefault();
           var form = $(this).closest('form');
           var name = form.find('input[name="name"]').val();
@@ -175,8 +174,6 @@
           var modalId = '#update-modal-' + itemId;
           var loaderId = '#loader-update-' + itemId;
           var errorMessageId = '#error-message-' + itemId;
-
-          console.log(`items/${itemId}/update/`)
 
           $(loaderId).show();
           $(errorMessageId).hide();
@@ -192,7 +189,6 @@
             },
             success: function(response) {
               if (response.success) {
-                  console.log(response.success);
                 $(modalId).modal('hide');
                 $(loaderId).hide();
                 // Update table to reflect updated item
