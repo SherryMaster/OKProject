@@ -20,8 +20,8 @@
               <td>{{ item.name }}</td>
               <td>{{ item.rate }}</td>
               <td>
-                <button class="btn btn-primary" data-toggle="modal" data-target="#update-modal-{{ item.pk }}"><i class="fas fa-edit"></i></button>
-                <button class="btn btn-danger" data-toggle="modal" data-target="#delete-modal-{{ item.pk }}"><i class="fas fa-trash"></i></button>
+                <button class="btn btn-primary" onclick="onItemUpdateButtonClick({{ item.pk }})"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-danger" onclick="onItemDeleteButtonClick({{ item.pk }})"><i class="fas fa-trash"></i></button>
               </td>
             </tr>
           {% endfor %}
@@ -33,57 +33,55 @@
 
   <!-- Modal template -->
     <div id="modal-container">
-  {% for item in items %}
-    <div id="delete-modal-{{ item.pk }}" class="modal fade">
+    <div id="delete-modal" class="modal fade">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Confirm Delete {{ item.name }}</h5>
+            <h5 class="modal-title" id="delete-modal-title">Confirm Delete Item?</h5>
             <button type="button" class="close" data-dismiss="modal">&times;</button>
           </div>
           <div class="modal-body">
-            <p>Are you sure you want to delete {{ item.name }} from the list?</p>
+            <p id="delete-modal-confirm-message">Are you sure you want to delete the item from the list?</p>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-danger modal-delete-button" id="confirm-delete-{{ item.pk }}" data-item-id="{{ item.pk }}">Delete</button>
-            <div id="loader-delete-{{ item.pk }}" style="display: none;">
+            <button type="button" class="btn btn-danger modal-delete-button" onclick="onModalDeleteButtonClick()" id="confirm-delete-item">Delete</button>
+            <div id="loader-delete-modal" style="display: none;">
               <i class="fas fa-spinner fa-spin"></i>
             </div>
-            <div id="error-message-{{ item.pk }}" style="display: none;"></div>
+            <div id="delete-modal-error-message" style="display: none;"></div>
           </div>
         </div>
       </div>
     </div>
 
-    <div id="update-modal-{{ item.pk }}" class="modal fade">
+    <div id="update-modal" class="modal fade">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Update {{ item.name }}</h5>
+            <h5 class="modal-title" id="update-modal-title">Update Item</h5>
             <button type="button" class="close" data-dismiss="modal">&times;</button>
           </div>
           <div class="modal-body">
-            <form id="update-item-form-{{ item.pk }}">
+            <form id="update-item-form">
               <div class="form-group">
-                <label for="update-name-{{ item.pk }}">Item Name:</label>
-                <input type="text" class="form-control" id="update-name-{{ item.pk }}" name="name" required value="{{ item.name }}">
+                <label for="update-name">Item Name:</label>
+                <input type="text" class="form-control" id="update-name" name="name" required>
               </div>
               <div class="form-group">
-                <label for="update-rate-{{ item.pk }}">Rate:</label>
-                <input type="number" class="form-control" id="update-rate-{{ item.pk }}" name="rate" required value="{{ item.rate }}">
+                <label for="update-rate">Rate:</label>
+                <input type="number" class="form-control" id="update-rate" name="rate" required>
               </div>
-              <button type="submit" class="btn btn-primary modal-update-button" data-item-id="{{ item.pk }}">Update</button>
-              <div id="loader-update-{{ item.pk }}" style="display: none;">
+              <button type="submit" class="btn btn-primary modal-update-button" id="confirm-update-item" onclick="onModalUpdateButtonClick()" data-toggle="modal" data-target="#update-modal-{{ item.pk }}">Update</button>
+              <div id="loader-update-modal" style="display: none;">
                 <i class="fas fa-spinner fa-spin"></i>
               </div>
-              <div id="error-message-{{ item.pk }}" style="display: none;"></div>
+              <div id="update-modal-error-message" style="display: none;"></div>
             </form>
           </div>
         </div>
       </div>
     </div>
-  {% endfor %}
 
     <div id="create-modal" class="modal fade">
       <div class="modal-dialog">
@@ -103,10 +101,10 @@
                 <input type="number" class="form-control" id="rate" name="rate" required>
               </div>
               <button type="submit" class="btn red-button">Create</button>
-              <div id="loader" style="display: none;">
+              <div id="loader-create-modal" style="display: none;">
                 <i class="fas fa-spinner fa-spin"></i>
               </div>
-              <div id="error-message" style="display: none;"></div>
+              <div id="create-modal-error-message" style="display: none;"></div>
             </form>
           </div>
         </div>
@@ -117,31 +115,28 @@
 
   <!-- JavaScript code -->
   <script>
-        $('tbody tr').on('click', '.btn-danger', function() {
-          var itemId = $(this).closest('tr').data('item-id');
-          var modalId = '#delete-modal-' + itemId;
-         console.log(`items/${itemId}/delete`)
-          $(modalId).modal('show');
-        });
 
-        $('tbody tr').on('click', '.btn-primary', function() {
-          var itemId = $(this).closest('tr').data('item-id');
-          var modalId = '#update-modal-' + itemId;
-         console.log(`items/${itemId}/update/`)
-          $(modalId).modal('show');
-        }
+    function onItemDeleteButtonClick(itemId) {
+        var deleteModal = $('#delete-modal');
+        var item = $('tr[data-item-id="' + itemId + '"]');
 
-      );
+        var deleteButton = deleteModal.find('#confirm-delete-item');
+        deleteButton.data('item-id', itemId);
+        deleteModal.find('#delete-modal-title').text(`Confirm Delete ${item.find('td:nth-child(1)').text()}`);
+        deleteModal.find('#delete-modal-confirm-message').text(`Are you sure you want to delete ${item.find('td:nth-child(1)').text()} from the list?`);
 
-        $('body').on('click', '.modal-delete-button', function() {
-          var itemId = $(this).data('item-id');
-          var modalId = '#delete-modal-' + itemId;
-          var loaderId = '#loader-delete-' + itemId;
-          var errorMessageId = '#error-message-' + itemId;
-          $(loaderId).show();
-          $(errorMessageId).hide();
+        deleteModal.modal('show');
 
-          $.ajax({
+    }
+
+    function onModalDeleteButtonClick() {
+        const itemId = $('#confirm-delete-item').data('item-id');
+        const loader = $('#loader-delete-modal');
+        const error = $('#delete-modal-error-message');
+        loader.show();
+        error.hide();
+
+        $.ajax({
             type: 'POST',
             url: `/items/${itemId}/delete`,
               headers: {
@@ -150,65 +145,78 @@
             success: function(response) {
               if (response.success) {
                   console.log(response.success);
-                $(modalId).modal('hide');
+                $('#delete-modal').modal('hide');
+                loader.hide();
+                error.hide();
                 // Update table to reflect deleted item
                 $('tr[data-item-id="' + itemId + '"]').remove();
               } else {
-                $(loaderId).hide();
-                $(errorMessageId).html(response.error).show();
+                loader.hide();
+                error.html(response.error).show();
               }
             },
             error: function(xhr, status, error) {
-              $(loaderId).hide();
-              $(errorMessageId).html('Error: ' + error).show();
+              $('#loader-delete-modal').hide();
+              $('#delete-modal-error-message').html('Error: ' + error).show();
             }
           });
-        });
+    }
 
-        $('body').on('click', '.modal-update-button', function() {
-          event.preventDefault();
-          var form = $(this).closest('form');
-          var name = form.find('input[name="name"]').val();
-          var rate = form.find('input[name="rate"]').val();
-          var itemId = $(this).data('item-id');
-          var modalId = '#update-modal-' + itemId;
-          var loaderId = '#loader-update-' + itemId;
-          var errorMessageId = '#error-message-' + itemId;
+    function onItemUpdateButtonClick(itemId) {
+        var item = $('tr[data-item-id="' + itemId + '"]');
+        var modal = $('#update-modal');
 
-          $(loaderId).show();
-          $(errorMessageId).hide();
-          $.ajax({
+        modal.find('#update-name').val(item.find('td:nth-child(1)').text());
+        modal.find('#update-rate').val(item.find('td:nth-child(2)').text());
+        modal.find('#loader-update-modal').hide();
+        modal.find('#update-modal-error-message').hide();
+        modal.find('#update-modal-title').text(`Update ${item.find('td:nth-child(1)').text()}`);
+        modal.find('#update-modal-confirm-message').text(`Are you sure you want to update ${item.find('td:nth-child(1)').text()}?`);
+        modal.find('#confirm-update-item').data('item-id', itemId);
+
+        modal.modal('show');
+    }
+
+    function onModalUpdateButtonClick() {
+        const itemId = $('#confirm-update-item').data('item-id');
+        const loader = $('#loader-update-modal');
+        const error = $('#update-modal-error-message');
+        const item = $('tr[data-item-id="' + itemId + '"]');
+        loader.show();
+        error.hide();
+
+        $.ajax({
             type: 'POST',
             url: `items/${itemId}/update`,
               headers: {
                   'X-CSRFToken': '{{ csrf_token }}'
                 },
             data: {
-              name: name,
-              rate: rate
+              name: $('#update-name').val(),
+              rate: $('#update-rate').val()
             },
             success: function(response) {
               if (response.success) {
-                $(modalId).modal('hide');
-                $(loaderId).hide();
+                $('#update-modal').modal('hide');
+                loader.hide();
+                error.hide();
                 // Update table to reflect updated item
-                $('tr[data-item-id="' + itemId + '"]').find('td:nth-child(1)').text(response.item.name);
-                $('tr[data-item-id="' + itemId + '"]').find('td:nth-child(2)').text(response.item.rate);
-                $(errorMessageId).html('').hide();
+                item.find('td:nth-child(1)').text(response.item.name);
+                item.find('td:nth-child(2)').text(response.item.rate);
               } else {
-                $(loaderId).hide();
-                $(errorMessageId).html(response.error).show();
+                loader.hide();
+                error.html(response.error).show();
               }
             },
             error: function(xhr, status, error) {
-              $(loaderId).hide();
-              $(errorMessageId).html('Error: ' + error).show();
+              loader.hide();
+              error.html('Error: ' + error).show();
             }
           });
-        });
+    }
 
 
-      $('#create-item-form').on('submit', function(e) {
+    $('#create-item-form').on('submit', function(e) {
         e.preventDefault();
         var modalId = '#create-modal';
         var loaderId = '#loader';
@@ -237,70 +245,14 @@
                 <td>${response.item.name}</td>
                 <td>${response.item.rate}</td>
                 <td>
-                  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#update-modal-${response.item.pk}">
+                  <button type="button" class="btn btn-primary" onclick="onItemUpdateButtonClick(${response.item.pk})">
                     <i class="fas fa-edit"></i>
                   </button>
-                  <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-modal-${response.item.pk}">
+                  <button type="button" class="btn btn-danger" onclick="onItemDeleteButtonClick(${response.item.pk})">
                     <i class="fas fa-trash"></i>
                   </button>
                 </td>
               `;
-
-              const modals = document.querySelector("#modal-container");
-
-              const newUpdateModal = document.createElement("div");
-              newUpdateModal.setAttribute("id", `update-modal-${response.item.pk}`);
-              newUpdateModal.setAttribute("class", "modal fade");
-              newUpdateModal.innerHTML = `
-                <div class="modal-dialog">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <h5 class="modal-title">Update ${response.item.name}</h5>
-                      <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                      <form id="update-item-form-${response.item.pk}">
-                        <div class="form-group">
-                          <label for="update-name-${response.item.pk}">Item Name:</label>
-                          <input type="text" class="form-control" id="update-name-${response.item.pk}" name="name" required value="${response.item.name}">
-                        </div>
-                        <div class="form-group">
-                          <label for="update-rate-${response.item.pk}">Rate:</label>
-                          <input type="number" class="form-control" id="update-rate-${response.item.pk}" name="rate" required value="${response.item.rate}">
-                        </div>
-                        <button type="submit" class="btn btn-primary modal-update-button" data-item-id="${response.item.pk}"><i class="fas fa-save"></i></button>
-                      </form>
-                    </div>
-                  </div>
-                </div>
-              `;
-
-              const newDeleteModal = document.createElement("div");
-              newDeleteModal.setAttribute("id", `delete-modal-${response.item.pk}`);
-              newDeleteModal.setAttribute("class", "modal fade");
-              newDeleteModal.innerHTML = `
-                <div class="modal-dialog">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <h5 class="modal-title">Delete ${response.item.name}</h5>
-                      <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                      <p>Are you sure you want to delete ${response.item.name} from the list?}</p>
-                    </div>
-                    <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                      <form id="delete-item-form-${response.item.pk}" method="POST" action="items/${response.item.pk}/delete">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger modal-delete-button" data-item-id="${response.item.pk}">Delete</button>
-                      </form>
-                    </div>
-                  </div>
-                </div>
-              `;
-
-              modals.appendChild(newUpdateModal);
-              modals.appendChild(newDeleteModal);
 
               tableBody.appendChild(newRow);
               $(errorMessageId).html('').hide();
@@ -319,5 +271,9 @@
           }
         });
       });
+
+    $('#update-item-form').on('submit', function(e) {
+        e.preventDefault();
+    });
   </script>
 {% endblock %}
