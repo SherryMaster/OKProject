@@ -1,0 +1,98 @@
+    function onItemDeleteButtonClick(itemId) {
+        var deleteModal = $('#delete-modal');
+        var item = $('tr[data-item-id="' + itemId + '"]');
+
+        var deleteButton = deleteModal.find('#confirm-delete-item');
+        deleteButton.data('item-id', itemId);
+        deleteModal.find('#delete-modal-title').text(`Confirm Delete ${item.find('td:nth-child(1)').text()}`);
+        deleteModal.find('#delete-modal-confirm-message').text(`Are you sure you want to delete ${item.find('td:nth-child(1)').text()} from the list?`);
+
+        deleteModal.modal('show');
+
+    }
+
+    function onModalDeleteButtonClick() {
+        const itemId = $('#confirm-delete-item').data('item-id');
+        const loader = $('#loader-delete-modal');
+        const error = $('#delete-modal-error-message');
+        loader.show();
+        error.hide();
+
+        $.ajax({
+            type: 'POST',
+            url: `/items/${itemId}/delete`,
+              headers: {
+                  'X-CSRFToken': '{{ csrf_token }}'
+                },
+            success: function(response) {
+              if (response.success) {
+                  console.log(response.success);
+                $('#delete-modal').modal('hide');
+                loader.hide();
+                error.hide();
+                // Update table to reflect deleted item
+                $('tr[data-item-id="' + itemId + '"]').remove();
+              } else {
+                loader.hide();
+                error.html(response.error).show();
+              }
+            },
+            error: function(xhr, status, error) {
+              $('#loader-delete-modal').hide();
+              $('#delete-modal-error-message').html('Error: ' + error).show();
+            }
+          });
+    }
+
+    function onItemUpdateButtonClick(itemId) {
+        var item = $('tr[data-item-id="' + itemId + '"]');
+        var modal = $('#update-modal');
+
+        modal.find('#update-name').val(item.find('td:nth-child(1)').text());
+        modal.find('#update-rate').val(item.find('td:nth-child(2)').text());
+        modal.find('#loader-update-modal').hide();
+        modal.find('#update-modal-error-message').hide();
+        modal.find('#update-modal-title').text(`Update ${item.find('td:nth-child(1)').text()}`);
+        modal.find('#update-modal-confirm-message').text(`Are you sure you want to update ${item.find('td:nth-child(1)').text()}?`);
+        modal.find('#confirm-update-item').data('item-id', itemId);
+
+        modal.modal('show');
+    }
+
+    function onModalUpdateButtonClick() {
+        const itemId = $('#confirm-update-item').data('item-id');
+        const loader = $('#loader-update-modal');
+        const error = $('#update-modal-error-message');
+        const item = $('tr[data-item-id="' + itemId + '"]');
+        loader.show();
+        error.hide();
+
+        $.ajax({
+            type: 'POST',
+            url: `items/${itemId}/update`,
+              headers: {
+                  'X-CSRFToken': '{{ csrf_token }}'
+                },
+            data: {
+              name: $('#update-name').val(),
+              rate: $('#update-rate').val()
+            },
+            success: function(response) {
+              if (response.success) {
+                $('#update-modal').modal('hide');
+                loader.hide();
+                error.hide();
+                // Update table to reflect updated item
+                item.find('td:nth-child(1)').text(response.item.name);
+                item.find('td:nth-child(2)').text(response.item.rate);
+              } else {
+                loader.hide();
+                error.html(response.error).show();
+              }
+            },
+            error: function(xhr, status, error) {
+              loader.hide();
+              error.html('Error: ' + error).show();
+            }
+          });
+    }

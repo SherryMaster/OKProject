@@ -1,0 +1,37 @@
+{% extends 'invoice_manager/base.html' %}
+
+{% load widget_tweaks %}
+
+{% block title %}Customers{% endblock %}
+
+{% block content %}
+      <div class="container">
+      <h1 class="text-center">Items</h1>
+      <button type="button" class="btn red-button mt-3 mb-3" data-toggle="modal" data-target="#create-modal">Create New Item</button>
+    <div class="row justify-content-center">
+      <table id="item-table" class="table table-striped">
+        <thead>
+          <tr>
+            <th>Item Name <input style="display: inline-block; width: 50%" onkeyup="FilterList()" type="text" class="form-control" id="search-input" placeholder="Search..."></th>
+            <th>Rate</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for customer in customers %}
+            <tr data-item-id="{{ customer.pk }}">
+                <td>{{ customer.name }}</td>
+                <td>{{ customer.phone_number }}</td>
+                <td>{{ customer.address }}</td>
+                <td>{{ customer.get_pending_amount }}</td>
+                <td>
+                <button class="btn btn-primary" onclick="onItemUpdateButtonClick({{ customer.pk }})"><i class="fas fa-edit"></i></button>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+{% endblock %}

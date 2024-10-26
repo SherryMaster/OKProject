@@ -24,7 +24,7 @@
           {% for customer in customers %}
             <li>
               <a class="index-invoice" href="">
-                {{ customer.name }}
+                {{ customer.name }} - {{ customer.get_pending_amount }}
               </a>
             </li>
           {% endfor %}
