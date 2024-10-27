@@ -20,6 +20,7 @@ def login_user(request):
     else:
         return JsonResponse({"success": False})
 
+
 # region Item Methods
 @login_required
 def item_create(request):
@@ -69,9 +70,12 @@ def item_update(request, pk):
         item.name = name
         item.rate = rate
         item.save()
-        return JsonResponse({"success": True, "item": {"name": item.name, "rate": item.rate}, "reason": "Item updated successfully"})
+        return JsonResponse(
+            {"success": True, "item": {"name": item.name, "rate": item.rate}, "reason": "Item updated successfully"})
 
     return JsonResponse({"success": False, "reason": "Invalid request"})
+
+
 # endregion
 
 # region Customer Methods
@@ -90,7 +94,10 @@ def customer_create(request):
             customer.phone_number = phone_number
             customer.address = address
             customer.save()
-            return JsonResponse({"success": True, "customer": {"pk": customer.pk, "name": customer.name, "phone_number": customer.phone_number, "address": customer.address, "pending_amount": customer.get_pending_amount()},
+            return JsonResponse({"success": True, "customer": {"pk": customer.pk, "name": customer.name,
+                                                               "phone_number": customer.phone_number,
+                                                               "address": customer.address,
+                                                               "pending_amount": customer.get_pending_amount()},
                                  "reason": "Customer created successfully"})
         except IntegrityError as e:
             return JsonResponse({"success": False, "reason": f"Customer with name \"{name}\" already exists"})
@@ -111,18 +118,54 @@ def customer_update(request, pk):
         customer.phone_number = ''.join(c for c in phone_number if c.isdigit())
         customer.address = address
         customer.save()
-        return JsonResponse({"success": True, "customer": {"name": customer.name, "phone_number": customer.phone_number, "address": customer.address, "pending_amount": customer.get_pending_amount()}, "reason": "Customer updated successfully"})
+        return JsonResponse({"success": True, "customer": {"name": customer.name, "phone_number": customer.phone_number,
+                                                           "address": customer.address,
+                                                           "pending_amount": customer.get_pending_amount()},
+                             "reason": "Customer updated successfully"})
 
     return JsonResponse({"success": False, "reason": "Invalid request"})
+
+
 # endregion
+
+# region Invoice Methods
+@login_required
+def invoice_create(request):
+    if request.method == "POST":
+        if not (request.user.profile.is_employee and request.user.is_superuser):
+            return JsonResponse({"success": False, "reason": "Only employees and admins can create invoices"})
+        customer_pk = request.POST.get("customer")
+        amount_paid = request.POST.get("amount_paid")
+        items = request.POST.get("items")
+        try:
+            customer = Customer.objects.get(pk=customer_pk)
+            invoice = Invoice()
+            invoice.customer = customer
+            invoice.amount_paid = amount_paid
+            invoice.items = items
+            invoice.save()
+            return JsonResponse({"success": True, "invoice": {"pk": invoice.pk, "title": invoice.get_invoice_title(),
+                                                              "amount_paid": invoice.amount_paid,
+                                                              "total_amount": invoice.get_total_amount(),
+                                                              "pending_amount": invoice.get_pending_amount(),
+                                                              "items": invoice.items},
+                                 "reason": "Invoice created successfully"})
+        except Exception as e:
+            return JsonResponse({"success": False, "reason": f"Customer with pk \"{customer_pk}\" not found"})
+
+    return JsonResponse({"success": False, "reason": "Invalid request"})
+
+# endregion
+
 
 class IndexView(TemplateView):
     template_name = "invoice_manager/index.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["invoices"] = Invoice.objects.filter(created_at__gte=timezone.now()-timedelta(days=1)).order_by("-id")
-        context["customers"] = Customer.objects.filter(created_at__gte=timezone.now()-timedelta(days=1)).order_by("-id")
+        context["invoices"] = Invoice.objects.filter(created_at__gte=timezone.now() - timedelta(days=1)).order_by("-id")
+        context["customers"] = Customer.objects.filter(created_at__gte=timezone.now() - timedelta(days=1)).order_by(
+            "-id")
         return context
 
 
@@ -160,3 +203,13 @@ class InvoiceListView(ListView):
     model = Invoice
     context_object_name = "invoices"
     ordering = "-id"
+
+
+class CreateInvoiceView(TemplateView):
+    template_name = "invoice_manager/invoice_create.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["customers"] = Customer.objects.all()
+        context["items"] = Item.objects.all()
+        return context
