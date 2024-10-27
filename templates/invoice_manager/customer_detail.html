@@ -1,0 +1,46 @@
+{% extends 'invoice_manager/base.html' %}
+
+{% load widget_tweaks %}
+
+{% block title %}{{ customer.name }} Details{% endblock %}
+
+{% block content %}
+    <h1>{{ customer.name }} Details</h1>
+    <p>Phone Number: {{ customer.phone_number }}</p>
+    <p>Address: {{ customer.address }}</p>
+    <p>Pending Amount: {{ customer.get_pending_amount }}</p>
+
+    <h2>Invoices</h2>
+    <ul>
+        <table id="invoice-table" class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Created at</th>
+                    <th>Created By</th>
+                    <th>Items</th>
+                    <th>Total Amount</th>
+                    <th>Paid Amount</th>
+                    <th>Pending Amount</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in invoices %}
+                    <tr>
+                        <td>{{ invoice.title }}</td>
+                        <td>{{ invoice.created_at }}</td>
+                        <td>{{ invoice.created_by }}</td>
+                        <td>{{ invoice.get_total_items }}</td>
+                        <td>{{ invoice.get_total_amount }}</td>
+                        <td>{{ invoice.amount_paid }}</td>
+                        <td>{{ invoice.get_pending_amount }}</td>
+                        <td>
+                            <button class="btn btn-primary" onclick="onInvoiceViewButtonClick({{ invoice.pk }})"><i class="fas fa-arrow-up-right-from-square"></i></button>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </ul>
+{% endblock %}
+

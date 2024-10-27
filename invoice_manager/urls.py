@@ -8,6 +8,8 @@ urlpatterns = [
     path("", IndexView.as_view(), name="index"),
     path("items", ItemsView.as_view(), name="items"),
     path("customers", CustomersView.as_view(), name="customers"),
+    path("customers/<int:pk>/details", CustomerDetailView.as_view(), name="customer_detail"),
+    path("invoices", InvoiceListView.as_view(), name="invoices"),
 ]
 
 ajax_urlpatterns = [

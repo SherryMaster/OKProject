@@ -28,6 +28,7 @@
                 <td>{{ customer.get_pending_amount }}</td>
                 <td>
                 <button class="btn btn-primary" onclick="onCustomerUpdateButtonClick({{ customer.pk }})"><i class="fas fa-edit"></i></button>
+                <a href="{% url 'invoice_manager:customer_detail' pk=customer.pk %}"><button class="btn btn-primary">View</button></a>
               </td>
             </tr>
           {% endfor %}

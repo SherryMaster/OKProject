@@ -6,7 +6,7 @@ from django.db import IntegrityError
 from django.db.models import Sum
 from django.http import JsonResponse
 from django.utils import timezone
-from django.views.generic import TemplateView, CreateView, DeleteView, UpdateView, ListView
+from django.views.generic import TemplateView, CreateView, DeleteView, UpdateView, ListView, DetailView
 from .models import Invoice, Customer, Item
 
 
@@ -141,3 +141,21 @@ class CustomersView(ListView):
     #     context = super().get_context_data(**kwargs)
     #     context["pending_amounts"] = Customer.objects.all().annotate(pending_amount=Sum("invoices__amount") - Sum("invoices__amount_paid"))
     #     return context
+
+
+class CustomerDetailView(DetailView):
+    template_name = "invoice_manager/customer_detail.html"
+    model = Customer
+    context_object_name = "customer"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        invoices = Invoice.objects.filter(customer=self.object)
+        context["invoices"] = Invoice.objects.filter(customer=self.object)
+        return context
+
+
+class InvoiceListView(ListView):
+    template_name = "invoice_manager/invoice_list.html"
+    model = Invoice
+    context_object_name = "invoices"
