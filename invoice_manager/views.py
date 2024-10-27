@@ -121,8 +121,8 @@ class IndexView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["invoices"] = Invoice.objects.filter(created_at__gte=timezone.now()-timedelta(days=1)).order_by("-id")[:5]
-        context["customers"] = Customer.objects.filter(created_at__gte=timezone.now()-timedelta(days=1)).order_by("-id")[:5]
+        context["invoices"] = Invoice.objects.filter(created_at__gte=timezone.now()-timedelta(days=1)).order_by("-id")
+        context["customers"] = Customer.objects.filter(created_at__gte=timezone.now()-timedelta(days=1)).order_by("-id")
         return context
 
 
@@ -151,7 +151,7 @@ class CustomerDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         invoices = Invoice.objects.filter(customer=self.object)
-        context["invoices"] = Invoice.objects.filter(customer=self.object)
+        context["invoices"] = Invoice.objects.filter(customer=self.object).order_by("-id")
         return context
 
 
@@ -159,3 +159,4 @@ class InvoiceListView(ListView):
     template_name = "invoice_manager/invoice_list.html"
     model = Invoice
     context_object_name = "invoices"
+    ordering = "-id"
