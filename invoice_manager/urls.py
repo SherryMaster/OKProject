@@ -15,6 +15,8 @@ ajax_urlpatterns = [
     path("items/<int:pk>/delete", item_delete, name="item_delete"),
     path("items/<int:pk>/update", item_update, name="item_update"),
     path("items/create", item_create, name="item_create"),
+    path("customers/create", customer_create, name="customer_create"),
+    path("customers/<int:pk>/update", customer_update, name="customer_update"),
 ]
 
 urlpatterns += ajax_urlpatterns

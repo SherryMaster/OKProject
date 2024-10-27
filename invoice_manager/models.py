@@ -22,6 +22,7 @@ class Customer(models.Model):
 
 
 class Invoice(models.Model):
+    title = models.CharField(max_length=255, blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="invoices")
     amount = models.IntegerField()
@@ -31,7 +32,7 @@ class Invoice(models.Model):
     items = models.JSONField(default=list)
 
     def __str__(self):
-        return self.customer.name + ' - ' + str(self.amount_paid) + '/' + str(self.amount)
+        return self.title or self.customer.name + '\'s invoice with amount ' + str(self.amount_paid) + '/' + str(self.amount)
 
 
 class Item(models.Model):

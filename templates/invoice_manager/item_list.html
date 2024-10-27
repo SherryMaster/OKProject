@@ -9,7 +9,7 @@
       <table id="item-table" class="table table-striped">
         <thead>
           <tr>
-            <th>Item Name <input style="display: inline-block; width: 50%" onkeyup="FilterList()" type="text" class="form-control" id="search-input" placeholder="Search..."></th>
+            <th>Item Name <input onkeyup="FilterList()" type="text" class="form-control" id="search-input" placeholder="Search..."></th>
             <th>Rate</th>
             <th>Actions</th>
           </tr>
@@ -39,20 +39,6 @@
 
       {% include 'invoice_manager/partials/item-modal-functions.html' %}
 
-    function FilterList() {
-        const input = $('#search-input').val();
-        const tableBody = $('#item-table tbody');
-        const items = tableBody.find('tr');
-
-        items.each(function() {
-            const itemName = $(this).find('td:nth-child(1)').text();
-            if (itemName.toLowerCase().indexOf(input.toLowerCase()) > -1) {
-                $(this).show();
-            } else {
-                $(this).hide();
-            }
-        });
-    }
 
     $('#create-item-form').on('submit', function(e) {
         e.preventDefault();

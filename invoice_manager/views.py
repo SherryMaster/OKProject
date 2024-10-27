@@ -20,10 +20,12 @@ def login_user(request):
     else:
         return JsonResponse({"success": False})
 
-
+# region Item Methods
 @login_required
 def item_create(request):
     if request.method == "POST":
+        if not (request.user.profile.is_employee and request.user.is_superuser):
+            return JsonResponse({"success": False, "reason": "Only employees and admins can create items"})
         name = request.POST.get("name")
         rate = request.POST.get("rate")
         try:
@@ -43,30 +45,76 @@ def item_create(request):
 def item_delete(request, pk):
     print(pk)
     if request.method == "POST":
+        if not (request.user.profile.is_employee and request.user.is_superuser):
+            return JsonResponse({"success": False, "reason": "Only employees and admins can delete items"})
         try:
             item = Item.objects.get(pk=pk)
             item.delete()
-            return JsonResponse({"success": True})
+            return JsonResponse({"success": True, "reason": "Item deleted successfully"})
         except Exception as e:
             print(e)
-            return JsonResponse({"success": False})
+            return JsonResponse({"success": False, "reason": "Item not found"})
 
-    return JsonResponse({"success": False})
+    return JsonResponse({"success": False, "reason": "Invalid request"})
 
 
 @login_required
 def item_update(request, pk):
     if request.method == "POST":
+        if not (request.user.profile.is_employee and request.user.is_superuser):
+            return JsonResponse({"success": False, "reason": "Only employees and admins can update items"})
         name = request.POST.get("name")
         rate = request.POST.get("rate")
         item = Item.objects.get(pk=pk)
         item.name = name
         item.rate = rate
         item.save()
-        return JsonResponse({"success": True, "item": {"name": item.name, "rate": item.rate}})
+        return JsonResponse({"success": True, "item": {"name": item.name, "rate": item.rate}, "reason": "Item updated successfully"})
 
-    return JsonResponse({"success": False})
+    return JsonResponse({"success": False, "reason": "Invalid request"})
+# endregion
 
+# region Customer Methods
+
+@login_required
+def customer_create(request):
+    if request.method == "POST":
+        if not (request.user.profile.is_employee and request.user.is_superuser):
+            return JsonResponse({"success": False, "reason": "Only employees and admins can create customers"})
+        name = request.POST.get("name")
+        phone_number = request.POST.get("phone_number")
+        address = request.POST.get("address")
+        try:
+            customer = Customer()
+            customer.name = name
+            customer.phone_number = phone_number
+            customer.address = address
+            customer.save()
+            return JsonResponse({"success": True, "customer": {"pk": customer.pk, "name": customer.name, "phone_number": customer.phone_number, "address": customer.address, "pending_amount": customer.get_pending_amount()},
+                                 "reason": "Customer created successfully"})
+        except IntegrityError as e:
+            return JsonResponse({"success": False, "reason": f"Customer with name \"{name}\" already exists"})
+
+    return JsonResponse({"success": False, "reason": "Invalid request"})
+
+
+@login_required
+def customer_update(request, pk):
+    if request.method == "POST":
+        if not (request.user.profile.is_employee and request.user.is_superuser):
+            return JsonResponse({"success": False, "reason": "Only employees and admins can update customers"})
+        name = request.POST.get("name")
+        phone_number = request.POST.get("phone_number")
+        address = request.POST.get("address")
+        customer = Customer.objects.get(pk=pk)
+        customer.name = name
+        customer.phone_number = ''.join(c for c in phone_number if c.isdigit())
+        customer.address = address
+        customer.save()
+        return JsonResponse({"success": True, "customer": {"name": customer.name, "phone_number": customer.phone_number, "address": customer.address, "pending_amount": customer.get_pending_amount()}, "reason": "Customer updated successfully"})
+
+    return JsonResponse({"success": False, "reason": "Invalid request"})
+# endregion
 
 class IndexView(TemplateView):
     template_name = "invoice_manager/index.html"
