@@ -22,7 +22,7 @@
             <div data-item-id=1 class="item-block">
                 <hr>
                 <label for="item-1">Item</label>
-                <input list="items-dropdown-list-1" class="form-control" id="item-1" name="item" style="display: inline-block; width: 15%" required>
+                <input list="items-dropdown-list-1" class="form-control item-input" id="item-1" name="item" style="display: inline-block; width: 15%" required>
                 <datalist id="items-dropdown-list-1">
                     <option value="" selected disabled>Select Item</option>
                     {% for item in items %}
@@ -30,7 +30,7 @@
                     {% endfor %}
                 </datalist>
                 <label for="quantity-1">Quantity</label>
-                <input type="number" class="form-control" id="quantity-1" name="quantity" value=0 style="display: inline-block; width: 15%" required>
+                <input type="number" class="form-control quantity-input" id="quantity-1" name="quantity" value=0 style="display: inline-block; width: 15%" required>
                 <label for="rate-1">Rate</label>
                 <input type="number" class="form-control" id="rate-1" name="rate" value=0 style="display: inline-block; width: 15%" disabled>
                 <label for="total-1">Total</label>
@@ -41,30 +41,52 @@
         <button type="button" class="btn btn-primary" id="add-item-button">Add Item</button>
         <br><br>
 
-        <button type="submit" class="btn btn-primary" id="create-invoice-button">Create Invoice</button>
+        <h3 class="float-right mr-3">Total: <span id="total">0</span></h3>
+
+        <br><br>
+
+        <button type="submit" class="btn btn-primary float-right" id="create-invoice-button">Create Invoice</button>
     </form>
 
     <script>
 
-        $('input[name="quantity"]').on('keyup change', function() {
+        function updateTotal() {
+            var total = 0;
+            var item_list = item_list_div;
+            var items = item_list.children().length;
+            for (let i = 1; i <= items; i++) {
+                var quantity = $("input[id='quantity-" + i + "']").val();
+                var rate = $("input[id='rate-" + i + "']").val();
+                total += quantity * rate;
+            }
+            $('#total').text(total);
+        }
+
+        item_list_div = $('#item-list');
+
+        item_list_div.on('input', '.quantity-input', function() {
+          var value = $(this).val();
+          if (value < 0) {
+            $(this).val(0);
+          }
+        });
+
+        item_list_div.on('keyup change', '.quantity-input', function() {
             var itemId = $(this).parent().data('item-id');
             var total = 0;
             var quantity = $(this).val();
             var rate = $("input[id='rate-" + itemId + "']").val();
-            console.log(rate);
-            console.log(quantity);
             total = quantity * rate;
-            console.log(total);
             $("input[id='total-" + itemId + "']").val(total);
+            updateTotal();
         });
 
-        $('input[name="item"]').on('change', function() {
+        item_list_div.on('change', '.item-input', function() {
             var itemId = $(this).parent().data('item-id');
             var list = $(this).attr('list');
             var datalist = $('#' + list);
             var dataItem = datalist.children('option[value="' + $(this).val() + '"]');
             var rate = dataItem.data('rate');
-            console.log(rate);
             $("input[id='rate-" + itemId + "']").val(rate);
         });
 
@@ -73,10 +95,10 @@
             var item_list = $('#item-list');
             var items = item_list.children().length;
             var item_html =`
-            <div class="item-block">
+            <div data-item-id="${items+1}" class="item-block">
                 <hr>
                 <label for="item-${items+1}">Item</label>
-                <input list="items-dropdown-list-${items+1}" class="form-control" id="item-${items+1}" name="item" style="display: inline-block; width: 15%" required>
+                <input list="items-dropdown-list-${items+1}" class="form-control item-input" id="item-${items+1}" name="item" style="display: inline-block; width: 15%" required>
                 <datalist id="items-dropdown-list-${items+1}">
                     <option value="" selected disabled>Select Item</option>
                     {% for item in items %}
@@ -84,7 +106,7 @@
                     {% endfor %}
                 </datalist>
                 <label for="quantity-${items+1}">Quantity</label>
-                <input type="number" class="form-control" id="quantity-${items+1}" name="quantity" value=0 style="display: inline-block; width: 15%" required>
+                <input type="number" class="form-control quantity-input" id="quantity-${items+1}" name="quantity" value=0 style="display: inline-block; width: 15%" required>
                 <label for="rate-${items+1}">Rate</label>
                 <input type="number" class="form-control" id="rate-${items+1}" name="rate" value=0 style="display: inline-block; width: 15%" disabled>
                 <label for="total-${items+1}">Total</label>
@@ -105,7 +127,7 @@
                 var list = $(item).attr('list');
                 var datalist = $('#' + list);
                 var dataItem = datalist.children('option[value="' + $(item).val() + '"]');
-                var value = dataItem.data('value');
+                var value = dataItem.val();
                 var rate = dataItem.data('rate');
                 items.push(value);
                 rates.push(rate);
@@ -114,6 +136,7 @@
             console.log(items);
             console.log(quantities);
             console.log(rates);
+            console.log(totals);
             {#$.ajax({#}
             {#    type: 'POST',#}
             {#    url: $(this).attr('action'),#}
