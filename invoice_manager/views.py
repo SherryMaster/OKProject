@@ -9,6 +9,8 @@ from django.utils import timezone
 from django.views.generic import TemplateView, CreateView, DeleteView, UpdateView, ListView, DetailView
 from .models import Invoice, Customer, Item
 
+import json
+
 
 def login_user(request):
     username = request.POST.get("username")
@@ -132,17 +134,30 @@ def customer_update(request, pk):
 @login_required
 def invoice_create(request):
     if request.method == "POST":
+
         if not (request.user.profile.is_employee and request.user.is_superuser):
             return JsonResponse({"success": False, "reason": "Only employees and admins can create invoices"})
-        customer_pk = request.POST.get("customer")
-        amount_paid = request.POST.get("amount_paid")
-        items = request.POST.get("items")
+
+        print(request.body)
+        data = json.loads(request.body)
+
+        title = data["title"]
+        customer_pk = data["customer"]
+        items = data["items"]
+        names = items["name"]
+        rates = items["rate"]
+        quantities = items["quantity"]
+
         try:
             customer = Customer.objects.get(pk=customer_pk)
+        except Exception as e:
+            return JsonResponse({"success": False, "reason": f"Customer with pk \"{customer_pk}\" not found"})
+
+        try:
             invoice = Invoice()
             invoice.customer = customer
-            invoice.amount_paid = amount_paid
-            invoice.items = items
+            invoice.created_by = request.user
+            invoice.make_item_list(names, rates, quantities)
             invoice.save()
             return JsonResponse({"success": True, "invoice": {"pk": invoice.pk, "title": invoice.get_invoice_title(),
                                                               "amount_paid": invoice.amount_paid,
@@ -151,7 +166,7 @@ def invoice_create(request):
                                                               "items": invoice.items},
                                  "reason": "Invoice created successfully"})
         except Exception as e:
-            return JsonResponse({"success": False, "reason": f"Customer with pk \"{customer_pk}\" not found"})
+            return JsonResponse({"success": False, "reason": f"{e}"})
 
     return JsonResponse({"success": False, "reason": "Invalid request"})
 

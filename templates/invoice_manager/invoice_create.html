@@ -123,6 +123,7 @@
             var quantities = $('input[name="quantity"]').map(function() { return $(this).val(); }).get();
             var items = [];
             var rates = [];
+
             $('input[name="item"]').each(function(index, item) {
                 var list = $(item).attr('list');
                 var datalist = $('#' + list);
@@ -133,30 +134,33 @@
                 rates.push(rate);
             });
 
-            console.log(items);
-            console.log(quantities);
-            console.log(rates);
-            console.log(totals);
-            {#$.ajax({#}
-            {#    type: 'POST',#}
-            {#    url: $(this).attr('action'),#}
-            {#    data: {#}
-            {#        title: $('#title').val(),#}
-            {#        customer: $('#customer').val(),#}
-            {#        items: $('input[name="items"]').map(function() { return $(this).val(); }).get(),#}
-            {#        quantities: $('input[name="quantities"]').map(function() { return $(this).val(); }).get(),#}
-            {#    },#}
-            {#    headers: {#}
-            {#        'X-CSRFToken': '{{ csrf_token }}',#}
-            {#    },#}
-            {#    success: function(response) {#}
-            {#        if (response.success) {#}
-            {#            window.location.href = response.redirect_url;#}
-            {#        } else {#}
-            {#            alert('Failed to create invoice');#}
-            {#        }#}
-            {#    }#}
-            {# });#}
+            var customer_id = $('#customers').find("option[value='" + $('#customer').val() + "']").data('customer-id');
+
+            $.ajax({
+                type: 'POST',
+                url: $(this).attr('action'),
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    title: $('#title').val(),
+                    customer: customer_id,
+                    items: {
+                      name: items,
+                      rate: rates,
+                      quantity: quantities
+                    },
+                }),
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert("Invoice created successfully");
+                        window.location.href = "{% url 'invoice_manager:invoices' %}";
+                    } else {
+                        alert('Failed to create invoice');
+                    }
+                }
+             });
         });
 
     </script>

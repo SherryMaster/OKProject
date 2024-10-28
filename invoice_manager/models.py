@@ -26,7 +26,7 @@ class Invoice(models.Model):
     title = models.CharField(max_length=255, blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="invoices")
-    amount_paid = models.IntegerField()
+    amount_paid = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     items = models.JSONField(default=list) # [{name, rate, quantity}, ...]
@@ -39,7 +39,7 @@ class Invoice(models.Model):
     def get_total_amount(self):
         amount = 0
         for item in self.items:
-            amount += item["rate"] * item["quantity"]
+            amount += int(item["rate"]) * int(item["quantity"])
         return amount
 
     def get_total_items(self):
@@ -53,8 +53,16 @@ class Invoice(models.Model):
             amount -= self.get_pending_amount()
         self.amount_paid += amount
         self.save()
+
+    def make_item_list(self, names, rates, quantities):
+        items = []
+        for i in range(len(names)):
+            items.append({"name": names[i], "rate": rates[i], "quantity": quantities[i]})
+        self.items = (items)
+
+
     def __str__(self):
-        return self.title or self.customer.name + '\'s invoice with amount ' + str(self.amount_paid) + '/' + str(self.amount)
+        return self.title or self.customer.name + '\'s invoice with amount ' + str(self.amount_paid) + '/' + str(self.get_total_amount())
 
 
 class Item(models.Model):
