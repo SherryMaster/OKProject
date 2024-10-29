@@ -138,7 +138,6 @@ def invoice_create(request):
         if not (request.user.profile.is_employee and request.user.is_superuser):
             return JsonResponse({"success": False, "reason": "Only employees and admins can create invoices"})
 
-        print(request.body)
         data = json.loads(request.body)
 
         title = data["title"]
@@ -155,6 +154,7 @@ def invoice_create(request):
 
         try:
             invoice = Invoice()
+            invoice.title = title or f"{customer}'s Invoice No. {invoice.pk}"
             invoice.customer = customer
             invoice.created_by = request.user
             invoice.make_item_list(names, rates, quantities)
@@ -227,4 +227,18 @@ class CreateInvoiceView(TemplateView):
         context = super().get_context_data(**kwargs)
         context["customers"] = Customer.objects.all()
         context["items"] = Item.objects.all()
+        return context
+
+
+class InvoiceDetailView(DetailView):
+    template_name = "invoice_manager/invoice_detail.html"
+    model = Invoice
+    context_object_name = "invoice"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        items = self.object.items
+        for item in items:
+            item["total"] = int(item["rate"]) * int(item["quantity"])
+        context["items"] = self.object.items
         return context

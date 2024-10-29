@@ -36,7 +36,7 @@
                         <td>{{ invoice.amount_paid }}</td>
                         <td>{{ invoice.get_pending_amount }}</td>
                         <td>
-                            <button class="btn btn-primary" onclick="onInvoiceViewButtonClick({{ invoice.pk }})"><i class="fas fa-arrow-up-right-from-square"></i></button>
+                            <a class="btn btn-primary" href="{% url 'invoice_manager:invoice_detail' invoice.id %}"><i class="fas fa-arrow-up-right-from-square"></i></a>
                     </tr>
                 {% endfor %}
             </tbody>

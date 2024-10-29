@@ -138,7 +138,7 @@
 
             $.ajax({
                 type: 'POST',
-                url: $(this).attr('action'),
+                url: '{% url "invoice_manager:invoice_create" %}',
                 contentType: 'application/json',
                 data: JSON.stringify({
                     title: $('#title').val(),

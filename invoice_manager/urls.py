@@ -11,6 +11,7 @@ urlpatterns = [
     path("customers/<int:pk>/details", CustomerDetailView.as_view(), name="customer_detail"),
     path("invoices", InvoiceListView.as_view(), name="invoices"),
     path("invoices/creation", CreateInvoiceView.as_view(), name="invoice_creation"),
+    path("invoices/<int:pk>/details", InvoiceDetailView.as_view(), name="invoice_detail"),
 ]
 
 ajax_urlpatterns = [

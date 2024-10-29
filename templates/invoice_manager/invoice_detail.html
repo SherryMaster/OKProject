@@ -1,0 +1,28 @@
+{% extends "invoice_manager/base.html" %}
+
+{% block title %}Invoice{% endblock %}
+
+{% block content %}
+    <h1>Invoice</h1>
+    <a href="{% url 'invoice_manager:invoices' %}" class="btn red-button mt-3 mb-3"><i class="fas fa-arrow-left"></i> Back to Invoices</a>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Rate</th>
+                <th>Quantity</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.rate }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.total }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

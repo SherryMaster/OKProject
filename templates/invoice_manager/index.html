@@ -11,8 +11,8 @@
         <ul>
           {% for invoice in invoices %}
             <li>
-              <a class="index-invoice" href="">
-                {{ invoice.created_by }} created an invoice for {{ invoice.customer.name }} of RS {{ invoice.amount }}
+              <a class="index-invoice" href="{% url 'invoice_manager:invoice_detail' invoice.id %}">
+                {{ invoice.created_by }} created an invoice for {{ invoice.customer.name }} of RS {{ invoice.get_total_amount }}
               </a>
             </li>
           {% endfor %}
