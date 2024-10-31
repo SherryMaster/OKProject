@@ -154,10 +154,11 @@ def invoice_create(request):
 
         try:
             invoice = Invoice()
-            invoice.title = title or f"{customer}'s Invoice No. {invoice.pk}"
             invoice.customer = customer
             invoice.created_by = request.user
             invoice.make_item_list(names, rates, quantities)
+            invoice.save()
+            invoice.title = title or f"{customer}'s Invoice No. {invoice.id}"
             invoice.save()
             return JsonResponse({"success": True, "invoice": {"pk": invoice.pk, "title": invoice.get_invoice_title(),
                                                               "amount_paid": invoice.amount_paid,
