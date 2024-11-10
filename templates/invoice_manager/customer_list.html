@@ -9,7 +9,7 @@
     <h1 class="text-center">Customers</h1>
     <button type="button" class="btn red-button mt-3 mb-3" data-toggle="modal" data-target="#create-modal">Create New Customer</button>
     <div class="row justify-content-center">
-      <table id="item-table" class="table table-striped">
+      <table id="customer-table" class="table table-striped">
         <thead>
           <tr>
             <th>Customer <input onkeyup="FilterList()" type="text" class="form-control" id="search-input" placeholder="Search..."></th>
@@ -41,12 +41,144 @@
 
     <script>
 
-        {% include 'invoice_manager/partials/customer-modal-functions.html' %}
+    function onCustomerUpdateButtonClick(customerId) {
+        var item = $('tr[data-customer-id="' + customerId + '"]');
+        var modal = $('#update-modal');
+        var name = item.find('td:nth-child(1)').text();
+        var phone_number = item.find('td:nth-child(2)').text();
+        var address = item.find('td:nth-child(3)').text();
+        modal.find('#update-name').val(name);
+        modal.find('#update-phone_number').val(phone_number);
+        modal.find('#update-address').val(address);
+        modal.find('#loader-update-modal').hide();
+        modal.find('#update-modal-error-message').hide();
+        modal.find('#update-modal-title').text(`Update ${name}`);
+        modal.find('#update-modal-confirm-message').text(`Are you sure you want to update ${name}?`);
+        modal.find('#confirm-update-customer').data('customer-id', customerId);
+        modal.modal('show');
+    }
+
+    function onCustomerModalUpdateButtonClick(){
+        var customerId = $('#confirm-update-customer').data('customer-id');
+
+        var customer = $('tr[data-customer-id="' + customerId + '"]');
+        var name = $('#update-name').val();
+        var phone_number = $('#update-phone_number').val();
+        var address = $('#update-address').val();
+        var modal = '#update-modal';
+        var loaderId = '#loader-update-modal';
+        var errorMessageId = '#update-modal-error-message';
+
+        if (name === '' || phone_number === '') {
+          $(loaderId).hide();
+          $(errorMessageId).html('Name and phone number are required').show();
+          return;
+        }
+        $.ajax({
+          type: 'POST',
+          url: `customers/${customerId}/update`,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+              },
+          data: {
+            'name': name,
+            'phone_number': phone_number,
+            'address': address
+          },
+          beforeSend: function() {
+            $(loaderId).show();
+            $(errorMessageId).hide();
+          },
+          success: function(response) {
+            if (response.success) {
+              $(modal).modal('hide');
+              $(loaderId).hide();
+              $(errorMessageId).hide();
+              // Update table to reflect updated item
+              customer.find('td:nth-child(1)').text(response.customer.name);
+              customer.find('td:nth-child(2)').text(response.customer.phone_number);
+              customer.find('td:nth-child(3)').text(response.customer.address);
+            } else {
+              $(loaderId).hide();
+              if (response.reason) {
+                $(errorMessageId).html(response.reason).show();
+              } else {
+                $(errorMessageId).html(response.error).show();
+              }
+            }
+          },
+          error: function(xhr, status, error) {
+            $(loaderId).hide();
+            $(errorMessageId).html('Error: ' + error).show();
+          }
+        });
+    }
+
+    function onCustomerCreateButtonClick() {
+        $('#create-modal-title').text('Create Customer');
+        const modal = $('#create-modal');
+        const loaderId = '#loader-create-modal';
+        const errorMessageId = '#create-modal-error-message';
+        const name = $('#create-name').val();
+        const phone_number = $('#create-phone_number').val();
+        const address = $('#create-address').val();
+
+        if (name === '' || phone_number === '') {
+          $(loaderId).hide();
+          $(errorMessageId).html('Name and phone number are required').show();
+          return;
+        }
+        $.ajax({
+          type: 'POST',
+          url: '{% url 'invoice_manager:customer_create' %}',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+              },
+          data: {
+            'name': name,
+            'phone_number': phone_number,
+            'address': address
+          },
+          beforeSend: function() {
+            $(loaderId).show();
+            $(errorMessageId).hide();
+          },
+          success: function(response) {
+            if (response.success) {
+                modal.modal('hide');
+                $(loaderId).hide();
+                $(errorMessageId).hide();
+                // Update table to reflect updated item
+                var newRow = $('<tr>');
+                newRow.attr('data-customer-id', response.customer.pk);
+                newRow.append('<td>' + response.customer.name + '</td>');
+                newRow.append('<td>' + response.customer.phone_number + '</td>');
+                newRow.append('<td>' + response.customer.address + '</td>');
+                newRow.append('<td>' + response.customer.pending_amount + '</td>');
+                newRow.append('<td><button class="btn btn-primary" onclick="onCustomerUpdateButtonClick(' + response.customer.pk + ')"><i class="fas fa-edit"></i></button></td>');
+                newRow.append(`<td><a href="customers/${response.customer.pk}/details"><button class="btn btn-primary">View</button></a></td>`);
+              $('#customer-table tbody').append(newRow);
+            } else {
+              $(loaderId).hide();
+              if (response.reason) {
+                $(errorMessageId).html(response.reason).show();
+              } else {
+                $(errorMessageId).html(response.error).show();
+              }
+            }
+          },
+          error: function(xhr, status, error) {
+            $(loaderId).hide();
+            $(errorMessageId).html('Error: ' + error).show();
+          }
+        });
+    }
+                        
 
     $('#update-customer-form').on('submit', function(e) {
         e.preventDefault();
     });
-    $('#create-item-form').on('submit', function(e) {
+    $('#create-customer-form').on('submit', function(e) {
         e.preventDefault();
     });
     </script>

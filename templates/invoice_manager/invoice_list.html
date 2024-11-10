@@ -29,7 +29,7 @@
                     <td>{{ invoice.amount_paid }}</td>
                     <td>{{ invoice.get_pending_amount }}</td>
                     <td>
-                        <a class="btn btn-primary" href="{% url 'invoice_manager:invoice_detail' pk=invoice.pk %}"><i class="fas fa-arrow-up-right-from-square"></i></a>
+                        <a class="btn btn-primary" href="{% url 'invoice_manager:invoice_detail' pk=invoice.pk %}" title="Details"><i class="fas fa-arrow-up-right-from-square"></i></a>
                     </td>
                 </tr>
             {% endfor %}

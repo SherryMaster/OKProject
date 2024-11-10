@@ -9,7 +9,7 @@
         <label for="title">Title</label>
         <input type="text" class="form-control" id="title" name="title" placeholder="Optional... By default will be stored a Customer's Invoice No.">
         <label for="customer">Customer</label>
-        <input list="customers" class="form-control" id="customer" name="customer" autocomplete="off" required>
+        <input list="" class="form-control" id="customer" name="customer" autocomplete="off" required>
         <datalist id="customers">
             <option value="" selected disabled>Select Customer</option>
             {% for customer in customers %}

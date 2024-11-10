@@ -23,7 +23,7 @@
         <ul>
           {% for customer in customers %}
             <li>
-              <a class="index-invoice" href="">
+              <a class="index-invoice" href="{% url "invoice_manager:customer_detail" pk=customer.pk%}">
                 {{ customer.name }}
               </a>
             </li>

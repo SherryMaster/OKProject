@@ -1,4 +1,5 @@
 from datetime import timedelta
+from lib2to3.fixes.fix_input import context
 
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -196,10 +197,20 @@ class CustomersView(ListView):
     model = Customer
     context_object_name = "customers"
 
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     context["pending_amounts"] = Customer.objects.all().annotate(pending_amount=Sum("invoices__amount") - Sum("invoices__amount_paid"))
-    #     return context
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        customers = Customer.objects.all()
+        pending_amounts = [customer.get_pending_amount() for customer in customers]
+        combined_list = zip(customers, pending_amounts)
+        combined_list = sorted(combined_list, key=lambda x: x[1], reverse=True)
+        sorted_customers, sort_amounts = zip(*combined_list)
+
+        print(sorted_customers)
+        context["customers"] = sorted_customers
+
+        return context
+
 
 
 class CustomerDetailView(DetailView):
